@@ -21,6 +21,7 @@ scratch부터 훈련, 사전학습된 얼굴 생성 모델 그리고 여러 시�
 프로젝트는 모두 StyleGAN2 ADA 위에서 이루어졌고, 처음 훈련을 시작할 때, NVlabs의 코드를 사용했다. Dataset이 굉장히 한정적이고, 굉장히 단순하기 때문에 overfitting이 매우 쉽게 일어날 것으로 보고, StyleGAN2 ADA를 처음부터 사용하였다. Tensorflow version과 pytorch version 모두 사용해보았는데 이에 대한 차이는 확인되지 않았다. Overfitting을 최대한 막기 위해 data augmentation인 하이퍼 파라미터 중 하나인 mirrored를 이용했고, 전이학습에서 Discriminator의 layer를 얼려서 훈련시키는 freeze D도 사용해보았다.
 
 ![image](https://user-images.githubusercontent.com/95264469/172424276-1dd23722-afd3-4074-82dc-bc622c3368c3.png)
+
 아주 초반부에는 모자, 얼굴의 각도 또는 배경 등 제법 재미있는 결과도 보였지만 급속도로 모드 붕괴 현상을 보였다. 더 높은 해상도에서 좋은 결과가 나오는 편이라고 하나 결과는 크게 다르지 않았다. 아래 결과를 통해 overfitting이나 leaking 현상이 심하다는 것도 확인 할 수 있었다. FID 점수는 200점 밑으로 떨어진 적 없이 계속 높은 값을 기록했다.
 
 ![image](https://user-images.githubusercontent.com/95264469/172427717-a28facab-a94a-45af-bef6-9c63602122f5.png)
@@ -36,7 +37,8 @@ Custom dataset을 이용한 타 프로젝트에서 많이 사용된 rosinality�
 
 
 ## Closed Form Factorization
-![image](https://user-images.githubusercontent.com/95264469/172430469-20294d81-45f5-4ee8-a010-f965860f7ab3.png)
+
+![testing_customizer](https://user-images.githubusercontent.com/95264469/172446971-d63eb273-e08f-42af-8634-dceb32a7c365.gif)
 
 Latent Space에서의 변화는 이미지에 다양한 영향을 미친다. 아직 자세하게 탐구가 된 부분은 아니지만, Latent Space에서의 이미지 조작을 하기 위해 다양한 시도를 하고 있다. 
 Closed Form Factorization은 비지도 학습을 통해 Latent Space에서 의미 있는 변화 방향을 찾는다. 이 방법을 이용하면 다음과 같이 찾은 방향을 따라 이동하면 GAN-ji의 특징이 변한다. 
@@ -46,14 +48,17 @@ Closed Form Factorization은 비지도 학습을 통해 Latent Space에서 의�
 
 ## Emojify(Network Blending)
 전이학습을 통해 특정 데이터에 학습된 모델을 다른 도메인의 데이터에 이어서 학습을 하면, 두 모델 사이에 어느 정도의 공통점이 존재하게 된다. 두 모델의 각 레이어에서 적절하게 가중치를 swapping을 해주면, 자연스럽게 두 도메인을 섞을 수 있다. 다음과 같이 이모지의 형태를 유지하며 사람의 특징을 가져오는 식으로 face 도메인과 emoji 도메인의 사이의 이미지를 생성할 수 있다. 
-![image](https://user-images.githubusercontent.com/95264469/172436733-49770748-19da-4972-a4ea-ba7ea0ee7d06.png)
+
+![woman_vomit](https://user-images.githubusercontent.com/95264469/172446850-5abb4f2d-f9f7-4a6b-a833-534ddae52dbf.gif)
+
 generated ffhq to emoji
 
-![image](https://user-images.githubusercontent.com/95264469/172436764-86a7d090-8f76-442f-ad27-e5545f064729.png)
+![projected_gongu_emojify](https://user-images.githubusercontent.com/95264469/172446689-642a46db-ea47-4616-ae6d-7d0ea88bd96e.gif)
+
 projected 공유 to emoji
 
 
-##Conclusion
+## Conclusion
 - 사이즈 256 FFHQ(550k) 모델에서 전이학습을 하여 100k의 훈련을 통해 만족스러운 결과를 낼 수 있엇다. 결과적으로 같은 SG2 ADA 모델에서 전혀 다른 결과가 나왔는데, GAN 훈련의 기묘함을 느끼는 동시에 NVlabs는 튜닝 가능한 여러 값들이 FFHQ나 AHQ 같은 데이터에 더욱 최적화되어 있어서 이러한 결과가 나온 것으로 보인다. 
 - Streamlit을 통해 랜덤 이모티콘 생성, Feature customize(Closed form factorization), Emojify(Network blending) 3가지 기능을 구현하여 서비스 배포를 하였다.
 - 개인의 사진을 넣어 projector를 통과시켜 emojify를 시키는 것이 가장 구현하고자 하는 기능이었지만 projector를 통과시킬 때 5분 이상 소요되는 점과 결과물로 출력되는 이모티콘이 서비스로서의 가치가 떨어진다는 점에서 배포 단계에서는 제외시켰다. 기획한 서비스의 상품성을 위해서는 projector 문제를 극복해야함은 물론 도메인 차이로 발생하는 저품질의 결과물을 개선해야 하는 숙제들을 해결해야 한다.
